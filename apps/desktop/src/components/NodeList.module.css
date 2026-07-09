@@ -1,0 +1,149 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  width: 300px;
+  background: #2a2a2a;
+  border-right: 1px solid #404040;
+  height: 100%;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  border-bottom: 1px solid #404040;
+}
+
+.title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #e0e0e0;
+}
+
+.createButton {
+  padding: 0.25rem 0.75rem;
+  background: #6080ff;
+  border: none;
+  border-radius: 4px;
+  color: white;
+  font-size: 1.25rem;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.createButton:hover {
+  background: #5070ef;
+}
+
+.controls {
+  padding: 0.75rem;
+  border-bottom: 1px solid #404040;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.filterInput {
+  padding: 0.375rem 0.5rem;
+  background: #1a1a1a;
+  border: 1px solid #404040;
+  border-radius: 4px;
+  color: #e0e0e0;
+  font-size: 0.875rem;
+}
+
+.filterInput:focus {
+  outline: none;
+  border-color: #6080ff;
+}
+
+.select {
+  padding: 0.375rem 0.5rem;
+  background: #1a1a1a;
+  border: 1px solid #404040;
+  border-radius: 4px;
+  color: #e0e0e0;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.select:focus {
+  outline: none;
+  border-color: #6080ff;
+}
+
+.list {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.group {
+  margin-bottom: 0.5rem;
+}
+
+.groupHeader {
+  padding: 0.5rem 1rem;
+  background: #333;
+  color: #a0a0a0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.nodeItem {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #333;
+  cursor: pointer;
+  transition: background 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.nodeItem:hover {
+  background: #333;
+}
+
+.nodeItemSelected {
+  background: #3a3a3a;
+  border-left: 3px solid #6080ff;
+}
+
+.nodeInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.nodeName {
+  font-size: 0.875rem;
+  color: #e0e0e0;
+  margin-bottom: 0.25rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nodeKind {
+  font-size: 0.75rem;
+  color: #808080;
+}
+
+.deleteButton {
+  padding: 0.125rem 0.375rem;
+  background: transparent;
+  border: none;
+  color: #808080;
+  font-size: 1.5rem;
+  cursor: pointer;
+  transition: color 0.15s;
+  flex-shrink: 0;
+}
+
+.deleteButton:hover {
+  color: #ff6060;
+}

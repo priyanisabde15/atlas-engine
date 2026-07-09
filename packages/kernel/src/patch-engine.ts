@@ -39,7 +39,10 @@ export class PatchEngine {
             id: patch.target,
             kind: (patch.payload.kind as string) ?? "unknown",
             name: patch.payload.name ?? "",
+            displayName: patch.payload.displayName,
+            description: patch.payload.description,
             tags: patch.payload.tags ?? [],
+            metadata: patch.payload.metadata ?? {},
             facets: patch.payload.facets ?? {},
             system: {
               createdAt: patch.ts,
@@ -83,6 +86,21 @@ export class PatchEngine {
         break;
       }
 
+      case "node-update-field": {
+        const node = store.getNode(patch.target);
+        if (node) {
+          store.addNode({
+            ...node,
+            [patch.field]: patch.value,
+            system: {
+              ...node.system,
+              modifiedAt: patch.ts,
+            },
+          });
+        }
+        break;
+      }
+
       case "tag-add": {
         const node = store.getNode(patch.target);
         if (node && !node.tags.includes(patch.tag)) {
@@ -104,6 +122,40 @@ export class PatchEngine {
           store.addNode({
             ...node,
             tags: node.tags.filter((t) => t !== patch.tag),
+            system: {
+              ...node.system,
+              modifiedAt: patch.ts,
+            },
+          });
+        }
+        break;
+      }
+
+      case "metadata-set": {
+        const node = store.getNode(patch.target);
+        if (node) {
+          store.addNode({
+            ...node,
+            metadata: {
+              ...node.metadata,
+              [patch.key]: patch.value,
+            },
+            system: {
+              ...node.system,
+              modifiedAt: patch.ts,
+            },
+          });
+        }
+        break;
+      }
+
+      case "metadata-delete": {
+        const node = store.getNode(patch.target);
+        if (node) {
+          const { [patch.key]: _, ...rest } = node.metadata;
+          store.addNode({
+            ...node,
+            metadata: rest,
             system: {
               ...node.system,
               modifiedAt: patch.ts,

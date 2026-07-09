@@ -1,10 +1,13 @@
 import { useState } from "react";
 import { useAtlas } from "../contexts/AtlasContext";
+import { CommandBus } from "@atlas/kernel";
 import { NodeEditor } from "./NodeEditor";
 import { StateSelector } from "./StateSelector";
 import { CommandBar } from "./CommandBar";
 import { FileMenu } from "./FileMenu";
 import styles from "./Workbench.module.css";
+
+const commandBus = new CommandBus();
 
 export function Workbench() {
   const { project } = useAtlas();
@@ -20,10 +23,10 @@ export function Workbench() {
           activeStateId={activeStateId}
           onSelectState={setActiveStateId}
         />
-        <CommandBar />
+        <CommandBar commandBus={commandBus} />
       </div>
       <div className={styles.content}>
-        <NodeEditor activeStateId={activeStateId} />
+        <NodeEditor activeStateId={activeStateId} commandBus={commandBus} />
       </div>
     </div>
   );

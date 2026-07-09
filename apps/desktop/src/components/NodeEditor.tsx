@@ -1,13 +1,31 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useAtlas } from "../contexts/AtlasContext";
-import type { Node } from "@atlas/kernel";
+import { NodeList } from "./NodeList";
+import { Inspector } from "./Inspector";
+import {
+  CommandBus,
+  CreateNodeCommand,
+  DeleteNodeCommand,
+  UpdateNodeFieldCommand,
+  AddTagCommand,
+  RemoveTagCommand,
+  SetMetadataCommand,
+  DeleteMetadataCommand,
+  CreateEdgeCommand,
+  DeleteEdgeCommand,
+  NodeArchetypes,
+  getAllConnectedEdges,
+  type Node,
+  type Edge,
+} from "@atlas/kernel";
 import styles from "./NodeEditor.module.css";
 
 interface NodeEditorProps {
   activeStateId?: string;
+  commandBus: CommandBus;
 }
 
-export function NodeEditor({ activeStateId }: NodeEditorProps) {
+export function NodeEditor({ activeStateId, commandBus }: NodeEditorProps) {
   const { project, setProject, stateTree } = useAtlas();
   const [selectedNodeId, setSelectedNodeId] = useState<string>();
 
@@ -25,86 +43,196 @@ export function NodeEditor({ activeStateId }: NodeEditorProps) {
     ? snapshot.nodes.get(selectedNodeId)
     : undefined;
 
+  const selectedEdges = selectedNodeId
+    ? getAllConnectedEdges(snapshot, selectedNodeId)
+    : [];
+
+  // Trigger re-render after command execution
+  const refreshProject = useCallback(() => {
+    setProject({ ...project });
+  }, [project, setProject]);
+
   const handleCreateNode = () => {
+    if (!activeStateId) return;
+
     const newNode: Node = {
       id: crypto.randomUUID(),
-      kind: "location",
+      kind: NodeArchetypes.SETTLEMENT,
       name: "New Node",
       tags: [],
+      metadata: {},
       facets: {},
       system: {
         createdAt: new Date().toISOString(),
         modifiedAt: new Date().toISOString(),
-        createdInState: activeStateId ?? "",
+        createdInState: activeStateId,
       },
     };
 
-    setProject({
-      ...project,
-      nodes: [...project.nodes, newNode],
-    });
+    const command = new CreateNodeCommand(stateTree, activeStateId, newNode);
+    commandBus.execute(command);
+    
+    // Add to project nodes for persistence
+    project.nodes.push(newNode);
+    refreshProject();
+    setSelectedNodeId(newNode.id);
+  };
 
-    // Add patch to active state
-    if (activeStateId) {
-      stateTree.appendPatch(activeStateId, {
-        op: "node-upsert",
-        target: newNode.id,
-        state: activeStateId,
-        payload: newNode,
-        ts: new Date().toISOString(),
-      });
+  const handleDeleteNode = (nodeId: string) => {
+    if (!activeStateId) return;
+
+    const node = snapshot.nodes.get(nodeId);
+    if (!node) return;
+
+    const command = new DeleteNodeCommand(stateTree, activeStateId, node);
+    commandBus.execute(command);
+
+    // Remove from project nodes
+    project.nodes = project.nodes.filter((n) => n.id !== nodeId);
+    refreshProject();
+
+    if (selectedNodeId === nodeId) {
+      setSelectedNodeId(undefined);
     }
+  };
+
+  const handleUpdateField = (field: string, value: unknown) => {
+    if (!activeStateId || !selectedNodeId) return;
+
+    const node = snapshot.nodes.get(selectedNodeId);
+    if (!node) return;
+
+    const oldValue = (node as any)[field];
+    const command = new UpdateNodeFieldCommand(
+      stateTree,
+      activeStateId,
+      selectedNodeId,
+      field,
+      value,
+      oldValue
+    );
+    commandBus.execute(command);
+    refreshProject();
+  };
+
+  const handleAddTag = (tag: string) => {
+    if (!activeStateId || !selectedNodeId) return;
+
+    const command = new AddTagCommand(
+      stateTree,
+      activeStateId,
+      selectedNodeId,
+      tag
+    );
+    commandBus.execute(command);
+    refreshProject();
+  };
+
+  const handleRemoveTag = (tag: string) => {
+    if (!activeStateId || !selectedNodeId) return;
+
+    const command = new RemoveTagCommand(
+      stateTree,
+      activeStateId,
+      selectedNodeId,
+      tag
+    );
+    commandBus.execute(command);
+    refreshProject();
+  };
+
+  const handleSetMetadata = (key: string, value: unknown) => {
+    if (!activeStateId || !selectedNodeId) return;
+
+    const node = snapshot.nodes.get(selectedNodeId);
+    if (!node) return;
+
+    const oldValue = node.metadata[key];
+    const command = new SetMetadataCommand(
+      stateTree,
+      activeStateId,
+      selectedNodeId,
+      key,
+      value,
+      oldValue
+    );
+    commandBus.execute(command);
+    refreshProject();
+  };
+
+  const handleDeleteMetadata = (key: string) => {
+    if (!activeStateId || !selectedNodeId) return;
+
+    const node = snapshot.nodes.get(selectedNodeId);
+    if (!node) return;
+
+    const oldValue = node.metadata[key];
+    const command = new DeleteMetadataCommand(
+      stateTree,
+      activeStateId,
+      selectedNodeId,
+      key,
+      oldValue
+    );
+    commandBus.execute(command);
+    refreshProject();
+  };
+
+  const handleCreateEdge = (targetId: string, kind: string) => {
+    if (!activeStateId || !selectedNodeId) return;
+
+    const newEdge: Edge = {
+      id: crypto.randomUUID(),
+      kind,
+      source: selectedNodeId,
+      target: targetId,
+    };
+
+    const command = new CreateEdgeCommand(stateTree, activeStateId, newEdge);
+    commandBus.execute(command);
+
+    // Add to project edges for persistence
+    project.edges.push(newEdge);
+    refreshProject();
+  };
+
+  const handleDeleteEdge = (edgeId: string) => {
+    if (!activeStateId) return;
+
+    const edge = snapshot.edges.get(edgeId);
+    if (!edge) return;
+
+    const command = new DeleteEdgeCommand(stateTree, activeStateId, edge);
+    commandBus.execute(command);
+
+    // Remove from project edges
+    project.edges = project.edges.filter((e) => e.id !== edgeId);
+    refreshProject();
   };
 
   return (
     <div className={styles.editor}>
-      <div className={styles.sidebar}>
-        <div className={styles.sidebarHeader}>
-          <h2 className={styles.sidebarTitle}>Nodes</h2>
-          <button className={styles.createButton} onClick={handleCreateNode}>
-            +
-          </button>
-        </div>
-        <div className={styles.nodeList}>
-          {nodes.map((node) => (
-            <div
-              key={node.id}
-              className={`${styles.nodeItem} ${
-                selectedNodeId === node.id ? styles.nodeItemSelected : ""
-              }`}
-              onClick={() => setSelectedNodeId(node.id)}
-            >
-              <div className={styles.nodeName}>{node.name}</div>
-              <div className={styles.nodeKind}>{node.kind}</div>
-            </div>
-          ))}
-        </div>
-      </div>
+      <NodeList
+        nodes={nodes}
+        selectedNodeId={selectedNodeId}
+        onSelectNode={setSelectedNodeId}
+        onCreateNode={handleCreateNode}
+        onDeleteNode={handleDeleteNode}
+      />
       <div className={styles.inspector}>
         {selectedNode ? (
-          <div className={styles.inspectorContent}>
-            <h2 className={styles.inspectorTitle}>{selectedNode.name}</h2>
-            <div className={styles.field}>
-              <label className={styles.label}>ID</label>
-              <div className={styles.value}>{selectedNode.id}</div>
-            </div>
-            <div className={styles.field}>
-              <label className={styles.label}>Kind</label>
-              <div className={styles.value}>{selectedNode.kind}</div>
-            </div>
-            <div className={styles.field}>
-              <label className={styles.label}>Tags</label>
-              <div className={styles.value}>
-                {selectedNode.tags.join(", ") || "None"}
-              </div>
-            </div>
-            <div className={styles.field}>
-              <label className={styles.label}>Created</label>
-              <div className={styles.value}>
-                {new Date(selectedNode.system.createdAt).toLocaleString()}
-              </div>
-            </div>
-          </div>
+          <Inspector
+            node={selectedNode}
+            edges={selectedEdges}
+            allNodes={nodes}
+            onUpdateField={handleUpdateField}
+            onAddTag={handleAddTag}
+            onRemoveTag={handleRemoveTag}
+            onSetMetadata={handleSetMetadata}
+            onDeleteMetadata={handleDeleteMetadata}
+            onCreateEdge={handleCreateEdge}
+            onDeleteEdge={handleDeleteEdge}
+          />
         ) : (
           <div className={styles.emptyState}>Select a node to inspect</div>
         )}

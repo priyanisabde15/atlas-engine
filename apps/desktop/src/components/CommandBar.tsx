@@ -1,10 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { CommandBus } from "@atlas/kernel";
 import styles from "./CommandBar.module.css";
 
-const commandBus = new CommandBus();
+interface CommandBarProps {
+  commandBus: CommandBus;
+}
 
-export function CommandBar() {
+export function CommandBar({ commandBus }: CommandBarProps) {
   const [canUndo, setCanUndo] = useState(false);
   const [canRedo, setCanRedo] = useState(false);
 
@@ -12,6 +14,11 @@ export function CommandBar() {
     setCanUndo(commandBus.canUndo());
     setCanRedo(commandBus.canRedo());
   };
+
+  // Update state on mount and when commandBus changes
+  useEffect(() => {
+    updateState();
+  }, [commandBus]);
 
   const handleUndo = () => {
     commandBus.undo();

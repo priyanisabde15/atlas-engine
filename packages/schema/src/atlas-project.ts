@@ -37,7 +37,10 @@ const NodeSchema = z.object({
   id: z.string(),
   kind: z.string(),
   name: z.string(),
+  displayName: z.string().optional(),
+  description: z.string().optional(),
   tags: z.array(z.string()),
+  metadata: z.record(z.unknown()),
   facets: z.record(z.unknown()),
   system: z.object({
     createdAt: z.string(),
@@ -91,6 +94,14 @@ const PatchSchema = z.discriminatedUnion("op", [
     ts: z.string(),
   }),
   z.object({
+    op: z.literal("node-update-field"),
+    target: z.string(),
+    state: z.string(),
+    field: z.string(),
+    value: z.unknown(),
+    ts: z.string(),
+  }),
+  z.object({
     op: z.literal("tag-add"),
     target: z.string(),
     state: z.string(),
@@ -102,6 +113,21 @@ const PatchSchema = z.discriminatedUnion("op", [
     target: z.string(),
     state: z.string(),
     tag: z.string(),
+    ts: z.string(),
+  }),
+  z.object({
+    op: z.literal("metadata-set"),
+    target: z.string(),
+    state: z.string(),
+    key: z.string(),
+    value: z.unknown(),
+    ts: z.string(),
+  }),
+  z.object({
+    op: z.literal("metadata-delete"),
+    target: z.string(),
+    state: z.string(),
+    key: z.string(),
     ts: z.string(),
   }),
 ]);
