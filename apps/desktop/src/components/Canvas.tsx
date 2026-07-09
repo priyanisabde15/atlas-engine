@@ -1,8 +1,11 @@
-import { useRef, useState, useCallback, type MouseEvent, type WheelEvent, type KeyboardEvent } from "react";
+import { useRef, useState, useCallback, useEffect, type MouseEvent, type WheelEvent, type KeyboardEvent } from "react";
+import { useAtlas } from "../contexts/AtlasContext";
 import type { Node, GraphSnapshot, CommandBus, StateId } from "@atlas/kernel";
 import {
   calculateBounds,
   MoveNodeCommand,
+  CreateNodeCommand,
+  NodeArchetypes,
   type Point,
   type SpatialFacet,
   type VisualStyle,
@@ -17,6 +20,8 @@ interface CanvasProps {
   stateTree: any;
   activeStateId?: StateId;
   activeTool: string;
+  onToolChange?: (tool: string) => void;
+  onRefresh?: () => void;
 }
 
 interface ViewTransform {
@@ -34,6 +39,9 @@ export function Canvas({
   commandBus,
   stateTree,
   activeStateId,
+  activeTool,
+  onToolChange,
+  onRefresh,
 }: CanvasProps) {
   const svgRef = useRef<SVGSVGElement>(null);
   const [transform, setTransform] = useState<ViewTransform>({ x: 400, y: 300, scale: 1 });
@@ -41,7 +49,7 @@ export function Canvas({
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState<Point | null>(null);
   const [showGrid, setShowGrid] = useState(true);
-  const [editMode, setEditMode] = useState<EditMode>("select");
+  const [editMode, setEditMode] = useState<EditMode>(activeTool as EditMode);
   const [drawingPoints, setDrawingPoints] = useState<Point[]>([]);
 
   // Convert screen coordinates to world coordinates
@@ -108,6 +116,66 @@ export function Canvas({
   );
 
   // Handle mouse down
+  useEffect(() => {
+    setEditMode(activeTool as EditMode);
+  }, [activeTool]);
+
+  const getDefaultStyle = useCallback(
+    (kind: string): VisualStyle => {
+      switch (kind) {
+        case NodeArchetypes.ISLAND:
+          return { fill: "#90caf9", stroke: "#1976d2", strokeWidth: 3, opacity: 0.8 };
+        case NodeArchetypes.ROUTE:
+          return { fill: "none", stroke: "#42a5f5", strokeWidth: 4, opacity: 1 };
+        default:
+          return { fill: "#90caf9", stroke: "#1976d2", strokeWidth: 2, opacity: 1 };
+      }
+    },
+    []
+  );
+
+  const { project, setProject } = useAtlas();
+
+  const createNode = useCallback(
+    (kind: string, name: string, geometry: any) => {
+      if (!activeStateId) return;
+      const newNode: Node = {
+        id: crypto.randomUUID(),
+        kind,
+        name,
+        tags: [],
+        metadata: {},
+        facets: {
+          spatial: {
+            geometry,
+            layer: "default",
+            zIndex: 0,
+            visible: true,
+            locked: false,
+          },
+          visual: getDefaultStyle(kind),
+        },
+        system: {
+          createdAt: new Date().toISOString(),
+          modifiedAt: new Date().toISOString(),
+          createdInState: activeStateId,
+        },
+      };
+
+      const command = new CreateNodeCommand(stateTree, activeStateId, newNode);
+      commandBus.execute(command);
+      setProject({
+        ...project,
+        nodes: [...project.nodes, newNode],
+      });
+      onSelectNode(newNode.id);
+      onRefresh?.();
+      onToolChange?.("select");
+      return newNode;
+    },
+    [activeStateId, commandBus, getDefaultStyle, onRefresh, onSelectNode, onToolChange, project, setProject, stateTree]
+  );
+
   const handleMouseDown = useCallback(
     (e: MouseEvent<SVGSVGElement>) => {
       const worldPos = screenToWorld(e.clientX, e.clientY);
@@ -166,6 +234,7 @@ export function Canvas({
             spatial.geometry
           );
           commandBus.execute(command);
+          onRefresh?.();
         }
 
         setDragStart(worldPos);
@@ -195,22 +264,25 @@ export function Canvas({
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
       if (e.key === "Enter" && drawingPoints.length > 0) {
-        // Finish drawing
         if (editMode === "draw-polygon" && drawingPoints.length >= 3) {
-          // TODO: Create polygon node
-          console.log("Create polygon", drawingPoints);
+          createNode(NodeArchetypes.ISLAND, "New Island", {
+            type: "polygon",
+            points: drawingPoints,
+          });
         } else if (editMode === "draw-polyline" && drawingPoints.length >= 2) {
-          // TODO: Create polyline node
-          console.log("Create polyline", drawingPoints);
+          createNode(NodeArchetypes.ROUTE, "New Route", {
+            type: "polyline",
+            points: drawingPoints,
+          });
         }
         setDrawingPoints([]);
-        setEditMode("select");
       } else if (e.key === "Escape") {
         setDrawingPoints([]);
         setEditMode("select");
+        onToolChange?.("select");
       }
     },
-    [editMode, drawingPoints]
+    [createNode, drawingPoints, editMode, onToolChange]
   );
 
   // Render node geometry

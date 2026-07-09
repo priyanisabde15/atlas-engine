@@ -145,7 +145,10 @@ export function Workbench() {
     if (confirm(`Delete ${node.name}?`)) {
       const command = new DeleteNodeCommand(stateTree, activeStateId, node);
       commandBus.execute(command);
-      project.nodes = project.nodes.filter((n) => n.id !== selectedNodeId);
+      setProject({
+        ...project,
+        nodes: project.nodes.filter((n) => n.id !== selectedNodeId),
+      });
       setSelectedNodeId(undefined);
       refreshProject();
     }
@@ -179,6 +182,8 @@ export function Workbench() {
           stateTree={stateTree}
           activeStateId={activeStateId}
           activeTool={activeTool}
+          onToolChange={setActiveTool}
+          onRefresh={refreshProject}
         />
         {selectedNode && (
           <div className={styles.rightPanel}>

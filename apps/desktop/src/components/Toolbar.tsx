@@ -1,3 +1,4 @@
+import { useAtlas } from "../contexts/AtlasContext";
 import type { CommandBus, StateTree, StateId, Node } from "@atlas/kernel";
 import { NodeArchetypes, CreateNodeCommand } from "@atlas/kernel";
 import styles from "./Toolbar.module.css";
@@ -11,6 +12,8 @@ interface ToolbarProps {
 }
 
 export function Toolbar({ commandBus, stateTree, activeStateId, onToolChange, onRefresh }: ToolbarProps) {
+  const { project, setProject } = useAtlas();
+
   const createObject = (archetype: string, geometry: any) => {
     if (!activeStateId) return;
 
@@ -39,7 +42,12 @@ export function Toolbar({ commandBus, stateTree, activeStateId, onToolChange, on
 
     const command = new CreateNodeCommand(stateTree, activeStateId, newNode);
     commandBus.execute(command);
-    onRefresh();
+    setProject({
+      ...project,
+      nodes: [...project.nodes, newNode],
+    });
+    onRefresh?.();
+    onToolChange?.("select");
   };
 
   const getDefaultStyle = (archetype: string) => {
