@@ -3,9 +3,10 @@
   height: 100%;
   display: flex;
   flex-direction: column;
+  background: #1a1a1a;
 }
 
-.toolbar {
+.header {
   display: flex;
   align-items: center;
   gap: 1rem;
@@ -21,8 +22,15 @@
   margin-right: auto;
 }
 
-.content {
+.main {
   flex: 1;
-  overflow: hidden;
   display: flex;
+  overflow: hidden;
+}
+
+.rightPanel {
+  width: 350px;
+  background: #1a1a1a;
+  border-left: 1px solid #404040;
+  overflow-y: auto;
 }

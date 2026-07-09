@@ -1,0 +1,46 @@
+.toolbar {
+  width: 200px;
+  background: #2a2a2a;
+  border-right: 1px solid #404040;
+  padding: 1rem;
+  overflow-y: auto;
+}
+
+.section {
+  margin-bottom: 1.5rem;
+}
+
+.sectionTitle {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #808080;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.75rem;
+}
+
+.toolButton {
+  width: 100%;
+  padding: 0.625rem;
+  margin-bottom: 0.5rem;
+  background: #333;
+  border: 1px solid #404040;
+  border-radius: 4px;
+  color: #e0e0e0;
+  font-size: 0.875rem;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.toolButton:hover {
+  background: #444;
+  border-color: #6080ff;
+}
+
+.toolButton:active {
+  background: #555;
+}
