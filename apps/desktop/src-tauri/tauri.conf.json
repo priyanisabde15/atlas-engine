@@ -1,0 +1,32 @@
+{
+  "productName": "Atlas Engine",
+  "version": "0.0.0",
+  "identifier": "com.atlas.engine",
+  "build": {
+    "beforeDevCommand": "npm run dev",
+    "devUrl": "http://localhost:1420",
+    "beforeBuildCommand": "npm run build",
+    "frontendDist": "../dist"
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "windows": {
+      "allowDowngrades": true
+    }
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "Atlas Engine",
+        "width": 1280,
+        "height": 800,
+        "minWidth": 800,
+        "minHeight": 600
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  }
+}
