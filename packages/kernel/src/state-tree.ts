@@ -142,4 +142,9 @@ export class StateTree {
   clearCache(): void {
     this.cache.clear();
   }
+
+  reset(): void {
+    this.states.clear();
+    this.clearCache();
+  }
 }

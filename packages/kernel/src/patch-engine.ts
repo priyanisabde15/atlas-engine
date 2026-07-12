@@ -6,6 +6,10 @@
 import { Patch, Node } from "./types.js";
 import { GraphStore } from "./graph-store.js";
 
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
 export class PatchEngine {
   /**
    * Apply a single patch to a GraphStore.
@@ -89,9 +93,15 @@ export class PatchEngine {
       case "node-update-field": {
         const node = store.getNode(patch.target);
         if (node) {
+          const existingValue = (node as any)[patch.field];
+          const patchedValue =
+            isPlainObject(existingValue) && isPlainObject(patch.value)
+              ? { ...existingValue, ...(patch.value as Record<string, unknown>) }
+              : patch.value;
+
           store.addNode({
             ...node,
-            [patch.field]: patch.value,
+            [patch.field]: patchedValue,
             system: {
               ...node.system,
               modifiedAt: patch.ts,
