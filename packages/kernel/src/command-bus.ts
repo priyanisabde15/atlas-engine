@@ -13,6 +13,7 @@ export interface Command {
 export class CommandBus {
   private undoStack: Command[] = [];
   private redoStack: Command[] = [];
+  private listeners: Set<() => void> = new Set();
   private maxStackSize = 100;
 
   execute(command: Command): void {
@@ -20,6 +21,18 @@ export class CommandBus {
     this.undoStack.push(command);
     this.redoStack = []; // Clear redo stack on new command
     this.trimStack();
+    this.notifyListeners();
+  }
+
+  subscribe(listener: () => void): () => void {
+    this.listeners.add(listener);
+    return () => this.listeners.delete(listener);
+  }
+
+  private notifyListeners(): void {
+    for (const listener of Array.from(this.listeners)) {
+      listener();
+    }
   }
 
   canUndo(): boolean {
@@ -35,6 +48,7 @@ export class CommandBus {
     if (command) {
       command.undo();
       this.redoStack.push(command);
+      this.notifyListeners();
     }
   }
 
@@ -43,12 +57,14 @@ export class CommandBus {
     if (command) {
       command.execute();
       this.undoStack.push(command);
+      this.notifyListeners();
     }
   }
 
   clear(): void {
     this.undoStack = [];
     this.redoStack = [];
+    this.notifyListeners();
   }
 
   private trimStack(): void {

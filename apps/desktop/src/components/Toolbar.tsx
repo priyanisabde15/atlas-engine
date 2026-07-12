@@ -7,11 +7,12 @@ interface ToolbarProps {
   commandBus: CommandBus;
   stateTree: StateTree;
   activeStateId?: StateId;
+  activeTool: string;
   onToolChange: (tool: string) => void;
   onRefresh: () => void;
 }
 
-export function Toolbar({ commandBus, stateTree, activeStateId, onToolChange, onRefresh }: ToolbarProps) {
+export function Toolbar({ commandBus, stateTree, activeStateId, activeTool, onToolChange, onRefresh }: ToolbarProps) {
   const { project, setProject } = useAtlas();
 
   const createObject = (archetype: string, geometry: any) => {
@@ -73,15 +74,24 @@ export function Toolbar({ commandBus, stateTree, activeStateId, onToolChange, on
     <div className={styles.toolbar}>
       <div className={styles.section}>
         <div className={styles.sectionTitle}>Tools</div>
-        <button className={styles.toolButton} onClick={() => onToolChange("select")}>
-          ⬜ Select
-        </button>
-        <button className={styles.toolButton} onClick={() => onToolChange("draw-polygon")}>
-          ⬟ Draw Island
-        </button>
-        <button className={styles.toolButton} onClick={() => onToolChange("draw-polyline")}>
-          〰️ Draw Path
-        </button>
+        <button
+         className={`${styles.toolButton} ${activeTool === "select" ? styles.activeTool : ""}`}
+         onClick={() => onToolChange("select")}
+          >
+         ⬜ Select
+          </button>
+          <button
+         className={`${styles.toolButton} ${activeTool === "draw-polygon" ? styles.activeTool : ""}`}
+         onClick={() => onToolChange("draw-polygon")}
+          >
+         ⬟ Draw Island
+          </button>
+          <button
+         className={`${styles.toolButton} ${activeTool === "draw-polyline" ? styles.activeTool : ""}`}
+         onClick={() => onToolChange("draw-polyline")}
+          >
+         〰️ Draw Path
+          </button>
       </div>
 
       <div className={styles.section}>

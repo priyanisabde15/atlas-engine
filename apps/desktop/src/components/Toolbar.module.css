@@ -41,6 +41,12 @@
   border-color: #6080ff;
 }
 
+.activeTool {
+  background: #6080ff;
+  border-color: #6080ff;
+  color: #ffffff;
+}
+
 .toolButton:active {
   background: #555;
 }

@@ -173,7 +173,7 @@ export function Canvas({
       onToolChange?.("select");
       return newNode;
     },
-    [activeStateId, commandBus, getDefaultStyle, onRefresh, onSelectNode, onToolChange, project, setProject, stateTree]
+    [activeStateId, commandBus, getDefaultStyle, onRefresh, onSelectNode, onToolChange, setProject, stateTree]
   );
 
   const handleMouseDown = useCallback(

@@ -4,9 +4,10 @@ import styles from "./CommandBar.module.css";
 
 interface CommandBarProps {
   commandBus: CommandBus;
+  onCommandExecuted?: () => void;
 }
 
-export function CommandBar({ commandBus }: CommandBarProps) {
+export function CommandBar({ commandBus, onCommandExecuted }: CommandBarProps) {
   const [canUndo, setCanUndo] = useState(false);
   const [canRedo, setCanRedo] = useState(false);
 
@@ -15,19 +16,21 @@ export function CommandBar({ commandBus }: CommandBarProps) {
     setCanRedo(commandBus.canRedo());
   };
 
-  // Update state on mount and when commandBus changes
   useEffect(() => {
     updateState();
-  }, [commandBus]);
+    const unsubscribe = commandBus.subscribe(() => {
+      updateState();
+      onCommandExecuted?.();
+    });
+    return unsubscribe;
+  }, [commandBus, onCommandExecuted]);
 
   const handleUndo = () => {
     commandBus.undo();
-    updateState();
   };
 
   const handleRedo = () => {
     commandBus.redo();
-    updateState();
   };
 
   return (
