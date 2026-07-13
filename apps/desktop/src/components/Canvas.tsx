@@ -407,7 +407,9 @@ export function Canvas({
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
-      if (e.key === "Enter" && drawingPoints.length > 0) {
+      const el = e.target as HTMLElement;
+      if (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.tagName === "SELECT" || el.isContentEditable) return;
+      if ((e.key === "Enter" || e.key === "v" || e.key === "V") && drawingPoints.length > 0) {
         finishDrawing();
       } else if (e.key === "Escape") {
         setDrawingPoints([]);

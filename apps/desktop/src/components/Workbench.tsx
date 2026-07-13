@@ -26,11 +26,11 @@ interface ToolDef {
 }
 
 const CREATE_TOOLS: ToolDef[] = [
-  { id: "island", label: "Island", icon: "🏝️", hint: "Click 4–12 rough boundary points. Enter or double-click to generate the coastline. Esc to cancel." },
-  { id: "forest", label: "Forest", icon: "🌲", hint: "Click to define a forest region boundary. Enter or double-click to fill with trees. Esc to cancel." },
-  { id: "mountains", label: "Mountains", icon: "⛰️", hint: "Click to define a mountain region boundary. Enter or double-click to place peaks. Esc to cancel." },
-  { id: "river", label: "River", icon: "〰️", hint: "Click points along the river path. Enter or double-click to finish. Esc to cancel." },
-  { id: "road", label: "Road", icon: "━━", hint: "Click points along the road path. Enter or double-click to finish. Esc to cancel." },
+  { id: "island", label: "Island", icon: "🏝️", hint: "Click 4–12 rough boundary points. Press V, Enter, or double-click to generate the coastline. Esc to cancel." },
+  { id: "forest", label: "Forest", icon: "🌲", hint: "Click to define a forest region boundary. Press V, Enter, or double-click to fill with trees. Esc to cancel." },
+  { id: "mountains", label: "Mountains", icon: "⛰️", hint: "Click to define a mountain region boundary. Press V, Enter, or double-click to place peaks. Esc to cancel." },
+  { id: "river", label: "River", icon: "〰️", hint: "Click points along the river path. Press V, Enter, or double-click to finish. Esc to cancel." },
+  { id: "road", label: "Road", icon: "━━", hint: "Click points along the road path. Press V, Enter, or double-click to finish. Esc to cancel." },
 ];
 
 const STAMP_TOOLS: ToolDef[] = [
