@@ -6,7 +6,7 @@ import { createEmptyProject, type AtlasProject } from "@atlas/schema";
 
 export function App() {
   const [project, setProject] = useState<AtlasProject>(() =>
-    createEmptyProject("Untitled Project")
+    createEmptyProject("Shakti Isles")
   );
   const [stateTree] = useState(() => new StateTree());
 

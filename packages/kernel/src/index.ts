@@ -12,3 +12,4 @@ export * from "./graph-queries.js";
 export * from "./graph-commands.js";
 export * from "./spatial-types.js";
 export * from "./spatial-commands.js";
+export * from './coastline.js';
